@@ -17,8 +17,19 @@ st.set_page_config(
 )
 
 # Cargar variables de entorno
+# Cargar variables de entorno locales (si existen)
 load_dotenv()
-CLAVE_API_GOOGLE = os.getenv("GOOGLE_API_KEY")
+
+# Lógica híbrida: Intenta leer de la Nube (Secrets), si falla, lee de Local (.env)
+try:
+    CLAVE_API_GOOGLE = st.secrets["GOOGLE_API_KEY"]
+except:
+    CLAVE_API_GOOGLE = os.getenv("GOOGLE_API_KEY")
+
+# Verificación de seguridad
+if not CLAVE_API_GOOGLE:
+    st.error("❌ No se encontró la API KEY. Configúrala en el archivo .env (Local) o en Secrets (Nube).")
+    st.stop()
 MODELO_EMBEDDING_LOCAL = "sentence-transformers/all-MiniLM-L6-v2"
 CARPETA_BASE_DATOS = "cerebro_cultivo_faiss"
 
@@ -149,4 +160,5 @@ if prompt := st.chat_input("¿Qué necesita tu cultivo hoy?"):
                     st.session_state.messages.append({"role": "assistant", "content": respuesta_texto})
 
                 except Exception as e:
+
                     st.error(f"Ocurrió un error: {e}")
