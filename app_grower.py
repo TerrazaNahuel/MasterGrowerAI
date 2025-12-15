@@ -122,35 +122,36 @@ if prompt := st.chat_input("¿Qué necesita tu cultivo hoy?"):
                     contexto_texto = "\n\n".join([d.page_content for d in docs])
 
                     # C. Prompt del Sistema
-                    system_prompt = """
-                    Actúa como un Master Grower experto.
-                    CONTEXTO GEOGRÁFICO: Estás en Argentina (Hemisferio Sur). Invierte las estaciones del Hemisferio Norte (ej. Marzo=Cosecha, Septiembre=Siembra).
-                    
-                    Tu misión:
-                    1. Si hay una imagen, ANALÍZALA buscando plagas, deficiencias o estado de floración.
-                    2. Usa el CONTEXTO de los libros para dar una solución científica y orgánica.
-                    3. Si la imagen es sana, felicita al cultivador.
+                    # C. Prompt Base (Identidad común)
+                    identidad = """
+                    Actúa como un Master Grower experto llamado 'Master Grower AI'.
+                    CONTEXTO GEOGRÁFICO: Estás en Argentina (Hemisferio Sur).
+                    ESTILO: Habla como un colega cultivador experimentado pero con base científica. Sé directo.
                     """
 
-                    # D. Ejecución (Texto o Multimodal)
+                    # D. Ejecución Dinámica
                     if imagen_subida:
-                        # --- MODO VISIÓN ---
+                        # --- MODO VISIÓN (Prompt específico para ver) ---
+                        instruccion_vision = """
+                        TU MISIÓN ACTUAL:
+                        1. Analiza la imagen adjunta buscando plagas, carencias o estado de madurez.
+                        2. Cruza lo que ves con el CONTEXTO DE LIBROS para dar una solución.
+                        """
+                        
+                        full_prompt = f"{identidad}\n{instruccion_vision}"
+                        
                         st.info("👁️ Analizando imagen adjunta...")
                         
-                        # 1. Resetear el puntero del archivo
+                        # Procesamiento de imagen
                         imagen_subida.seek(0)
-                        
-                        # 2. Convertir la imagen a Base64
                         bytes_data = imagen_subida.getvalue()
                         image_b64 = base64.b64encode(bytes_data).decode()
-                        
-                        # 3. Crear la URI de la imagen
                         image_url = f"data:{imagen_subida.type};base64,{image_b64}"
 
                         mensaje_multimodal = [
                             {
                                 "type": "text",
-                                "text": f"{system_prompt}\n\nCONTEXTO DE LIBROS:\n{contexto_texto}\n\nPREGUNTA USUARIO: {prompt}"
+                                "text": f"{full_prompt}\n\nCONTEXTO LIBROS:\n{contexto_texto}\n\nPREGUNTA USUARIO: {prompt}"
                             },
                             {
                                 "type": "image_url",
@@ -159,12 +160,18 @@ if prompt := st.chat_input("¿Qué necesita tu cultivo hoy?"):
                         ]
                         respuesta_ai = llm.invoke([HumanMessage(content=mensaje_multimodal)])
                         respuesta_texto = respuesta_ai.content
+                        
                     else:
-                        # --- MODO TEXTO ---
-                        msg = f"{system_prompt}\n\nCONTEXTO:\n{contexto_texto}\n\nPREGUNTA: {prompt}"
+                        # --- MODO TEXTO (Prompt específico para chatear) ---
+                        instruccion_texto = """
+                        TU MISIÓN ACTUAL:
+                        Responde la pregunta del usuario usando EXCLUSIVAMENTE el Contexto proporcionado.
+                        NO menciones que no hay imagen. Céntrate puramente en la duda teórica o práctica.
+                        """
+                        
+                        msg = f"{identidad}\n{instruccion_texto}\n\nCONTEXTO:\n{contexto_texto}\n\nPREGUNTA: {prompt}"
                         respuesta_ai = llm.invoke(msg)
                         respuesta_texto = respuesta_ai.content
-
                     # E. Mostrar Respuesta
                     st.markdown(respuesta_texto)
 
@@ -180,6 +187,7 @@ if prompt := st.chat_input("¿Qué necesita tu cultivo hoy?"):
                 except Exception as e:
 
                     st.error(f"Ocurrió un error: {e}")
+
 
 
 
