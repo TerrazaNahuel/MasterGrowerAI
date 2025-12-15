@@ -94,7 +94,7 @@ if prompt := st.chat_input("¿Qué necesita tu cultivo hoy?"):
                 try:
                     # A. Configuración del Modelo (1.5 Flash para visión)
                     llm = ChatGoogleGenerativeAI(
-                        model="gemini-1.5-flash-latest",
+                        model="gemini-1.5-flash-002",
                         google_api_key=CLAVE_API_GOOGLE,
                         temperature=0.3
                     )
@@ -162,5 +162,6 @@ if prompt := st.chat_input("¿Qué necesita tu cultivo hoy?"):
                 except Exception as e:
 
                     st.error(f"Ocurrió un error: {e}")
+
 
 
