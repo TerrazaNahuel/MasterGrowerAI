@@ -55,22 +55,8 @@ with st.sidebar:
         st.image(image, caption="Imagen cargada", use_container_width=True)
         # ... (código anterior de la barra lateral) ...
     
-    st.divider()
-    st.header("🛠️ Diagnóstico de Nube")
-    if st.button("Ver Modelos Disponibles"):
-        try:
-            import google.generativeai as genai
-            genai.configure(api_key=CLAVE_API_GOOGLE)
-            st.write("Conectando con Google...")
-            modelos = genai.list_models()
-            lista_modelos = []
-            for m in modelos:
-                if 'generateContent' in m.supported_generation_methods:
-                    lista_modelos.append(m.name)
-            st.success("✅ Modelos detectados:")
-            st.code(lista_modelos)
-        except Exception as e:
-            st.error(f"Error de conexión: {e}")
+
+  
 
 # --- FUNCIÓN DE CARGA ---
 @st.cache_resource
@@ -187,6 +173,7 @@ if prompt := st.chat_input("¿Qué necesita tu cultivo hoy?"):
                 except Exception as e:
 
                     st.error(f"Ocurrió un error: {e}")
+
 
 
 
